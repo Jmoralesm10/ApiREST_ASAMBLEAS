@@ -3,6 +3,20 @@ const config = require('../config');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+const registrarusuario = (usuario, callback) => {
+    const rolPredeterminado = 4; // Establecemos el rol predeterminado a 4
+    const query = 'CALL InsertUsuario(?, ?, ?)';
+    db.query(query, [usuario.email, usuario.password, rolPredeterminado], (error, results) => {
+        if (error) {
+            return callback(error, null);
+        }
+        return callback(null, {
+            message: 'Usuario registrado exitosamente',
+            usuario: results[0][0] // El resultado del procedimiento almacenado
+        });
+    });
+};
+
 //metodo de inicio de sesion
 const login = (email, password, callback) => {
  const query = 'SELECT * FROM usuarios WHERE email = ?';

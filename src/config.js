@@ -5,9 +5,9 @@ module.exports = {
         port: process.env.PORT || 3000
     },
     db: {
-        host: 'localhost',
-        user: 'root',
-        password: '',
-        database: 'db_restapi'
+        host: process.env.DB_HOST || 'localhost',
+        user: process.env.DB_USER || 'root',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_NAME || 'db_restapi'
     }
 }
