@@ -8,7 +8,6 @@ const app = express();
 app.set('port', config.app.port);
 
 //RUTAS
-app.use('/api/login', login);
-
+app.use('/api', login);
 
 module.exports = app;
