@@ -66,7 +66,7 @@ const login = (email, password, callback) => {
                 return callback(error, null);
             }
             if (!match) {
-                return callback({ message: 'Contraseña incorrecta' }, null);
+                return callback({ message: 'Usuario o contraseña incorrectos' }, null);
             }
 
             // Generar un token JWT
