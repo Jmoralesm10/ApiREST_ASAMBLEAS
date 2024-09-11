@@ -1,13 +1,17 @@
 const express = require('express');
 const config = require('./config');
-const login = require('./modulos/asambleas/rutas');
+const asambleasRoutes = require('./modulos/asambleas/rutas');
 
 const app = express();
 
-//SETTINGS
+// SETTINGS
 app.set('port', config.app.port);
 
-//RUTAS
-app.use('/api', login);
+// MIDDLEWARES
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// RUTAS
+app.use('/api/asambleas', asambleasRoutes);
 
 module.exports = app;

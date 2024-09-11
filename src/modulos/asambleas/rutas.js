@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post('/login', controlador.login);
 
-router.post('/registro', authController.registrarUsuario);
+// Cambiamos esta línea para usar el controlador correcto
+router.post('/registro', controlador.registrarUsuario);
 
 module.exports = router;
