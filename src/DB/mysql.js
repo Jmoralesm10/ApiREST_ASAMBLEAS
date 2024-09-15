@@ -27,16 +27,21 @@ const registrarusuario = (usuario, callback) => {
     
     db.query(query, [usuario.email, usuario.password, rolPredeterminado], (error, results) => {
         if (error) {
+            // Verificar si el error es debido a un correo duplicado
+            if (error.code === 'ER_DUP_ENTRY') {
+                return callback({ message: 'Este correo ya ha sido registrado' }, null);
+            }
             return callback(error, null);
         }
 
         // Manejar el resultado para obtener el ID del usuario insertado
-        if (results) {
+        if (results && results[0] && results[0][0]) {
+            const nuevoUsuario = results[0][0];
             return callback(null, {
                 message: 'Usuario registrado exitosamente',
                 usuario: {
-                    id_usuario: results.insertId, // ID del usuario insertado
-                    email: usuario.email
+                    id_usuario: nuevoUsuario.id_usuario,
+                    email: nuevoUsuario.email
                 }
             });
         } else {
