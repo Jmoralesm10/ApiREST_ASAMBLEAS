@@ -28,7 +28,19 @@ const registrarUsuario = async (req, res) => {
     }
 };
 
+// Registrar una iglesia
+const registrarIglesia = (req, res) => {
+    const { nombre, pastor, direccion, latitud, longitud, facebook, instagram, sitioWeb, horarios } = req.body;
+    db.insertarIglesia({ nombre, pastor, direccion, latitud, longitud, facebook, instagram, sitioWeb, horarios }, (error, result) => {
+        if (error) {
+            return res.status(500).json({ message: error.message });
+        }
+        res.status(201).json(result);
+    });
+};
+
 module.exports = {
     login,
-    registrarUsuario
+    registrarUsuario,
+    registrarIglesia
 };

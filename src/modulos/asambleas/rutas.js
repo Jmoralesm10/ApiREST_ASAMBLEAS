@@ -10,4 +10,7 @@ router.post('/login', controlador.login);
 // Cambiamos esta línea para usar el controlador correcto
 router.post('/registro', controlador.registrarUsuario);
 
+// Ruta para registrar una iglesia
+router.post('/registro-iglesia', controlador.registrarIglesia);
+
 module.exports = router;

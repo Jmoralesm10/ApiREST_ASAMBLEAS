@@ -91,7 +91,35 @@ const login = (email, password, callback) => {
     });
 };
 
+// Función para insertar una nueva iglesia
+const insertarIglesia = (iglesia, callback) => {
+    const query = 'CALL InsertIglesiaCompleta(?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    
+    db.query(query, [
+        iglesia.nombre,
+        iglesia.pastor,
+        iglesia.direccion,
+        iglesia.latitud,
+        iglesia.longitud,
+        iglesia.facebook,
+        iglesia.instagram,
+        iglesia.sitioWeb,
+        JSON.stringify(iglesia.horarios)
+    ], (error, results) => {
+        if (error) {
+            return callback(error, null);
+        }
+        
+        // El procedimiento no devuelve la iglesia insertada, así que modificamos la respuesta
+        return callback(null, {
+            message: 'Iglesia registrada exitosamente',
+            iglesiaId: results.insertId // Esto podría no estar disponible directamente
+        });
+    });
+};
+
 module.exports = {
     registrarusuario,
-    login
+    login,
+    insertarIglesia
 };
