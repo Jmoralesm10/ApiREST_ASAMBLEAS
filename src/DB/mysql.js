@@ -93,7 +93,7 @@ const login = (email, password, callback) => {
 
 // Función para insertar una nueva iglesia
 const insertarIglesia = (iglesia, callback) => {
-    const query = 'CALL InsertIglesiaCompleta(?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const query = 'CALL InsertIglesiaCompleta(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
     
     db.query(query, [
         iglesia.nombre,
@@ -101,6 +101,7 @@ const insertarIglesia = (iglesia, callback) => {
         iglesia.direccion,
         iglesia.latitud,
         iglesia.longitud,
+        iglesia.fotoPerfil,
         iglesia.facebook,
         iglesia.instagram,
         iglesia.sitioWeb,
