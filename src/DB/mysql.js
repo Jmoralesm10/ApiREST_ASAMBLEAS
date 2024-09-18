@@ -104,7 +104,14 @@ const insertarIglesia = (iglesia, callback) => {
 // Función para buscar iglesias por nombre
 const buscarIglesiaPorNombre = (nombre, callback) => {
     const sql = 'CALL BuscarIglesiaPorNombre(?)';
-    queryWithRetry(sql, [nombre], callback);
+    queryWithRetry(sql, [nombre], (error, results) => {
+        if (error) {
+            console.error('Error al buscar iglesia:', error);
+            callback(error, null);
+        } else {
+            callback(null, results);
+        }
+    });
 };
 
 // Iniciar la conexión

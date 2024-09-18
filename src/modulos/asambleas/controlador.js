@@ -131,9 +131,12 @@ const buscarIglesias = async (req, res) => {
                 const horariosServicios = {};
 
                 if (iglesia.redes_sociales) {
-                    iglesia.redes_sociales.split(';').forEach(red => {
-                        const [plataforma, url] = red.split(':');
-                        redesSociales[plataforma.trim()] = url.trim();
+                    // Modificación aquí: Manejar URLs con caracteres especiales
+                    const redesArray = iglesia.redes_sociales.split(';');
+                    redesArray.forEach(red => {
+                        const [plataforma, ...urlParts] = red.split(':');
+                        const url = urlParts.join(':').trim(); // Reunir todas las partes de la URL
+                        redesSociales[plataforma.trim()] = url.replace(/^@/, ''); // Eliminar el @ inicial si existe
                     });
                 }
 

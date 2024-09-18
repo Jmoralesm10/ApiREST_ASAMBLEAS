@@ -18,8 +18,8 @@ app.set('port', config.app.port);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// RUTAS
-app.use('/api/asambleas', asambleasRoutes);
+// Modificar esta línea para usar la nueva estructura de rutas
+app.use('/api.asambleasdedios.gt/api/asambleas', asambleasRoutes);
 
 // SERVIR IMAGENES ESTÁTICAMENTE
 app.use('/imagenes', express.static(path.join(__dirname, '..', 'imagenes')));
