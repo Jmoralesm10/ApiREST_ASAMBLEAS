@@ -13,4 +13,6 @@ router.post('/registro', controlador.registrarUsuario);
 // Ruta para registrar una iglesia
 router.post('/registro-iglesia', controlador.registrarIglesia);
 
+router.get('/buscar-iglesias', controlador.buscarIglesias);
+
 module.exports = router;

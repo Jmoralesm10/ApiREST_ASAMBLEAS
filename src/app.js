@@ -2,12 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const config = require('./config');
 const asambleasRoutes = require('./modulos/asambleas/rutas');
+const path = require('path');
 
 const app = express();
 
 // CONFIGURAR CORS
 app.use(cors({
-    origin: [/^http:\/\/localhost:\d+$/, 'http://api.asambleasdedios.gt']
+    origin: '*'
 }));
 
 // SETTINGS
@@ -19,5 +20,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // RUTAS
 app.use('/api/asambleas', asambleasRoutes);
+
+// SERVIR IMAGENES ESTÁTICAMENTE
+app.use('/imagenes', express.static(path.join(__dirname, '..', 'imagenes')));
 
 module.exports = app;

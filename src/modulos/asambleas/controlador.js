@@ -2,18 +2,21 @@ const db = require('../../DB/mysql');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
+const jwt = require('jsonwebtoken'); // Importación de la librería jwt para generar tokens
+const fs = require('fs').promises;
 
 // Configuración de multer para la carga de archivos
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'D:\\PROTOTIPO ASAMBLEAS DE DIOS\\imagenes\\iglesias\\') // Nueva ruta para guardar las imágenes
+        const uploadPath = path.join(__dirname, '..', '..', '..', 'imagenes', 'iglesias');
+        cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + path.extname(file.originalname))
     }
 });
 
-const upload = multer({ storage: storage }).single('fotoPerfil');
+const upload = multer({ storage: storage }).single('imagen');
 
 const login = (req, res) => {
     const { email, password } = req.body;
@@ -21,9 +24,31 @@ const login = (req, res) => {
         if (error) {
             return res.status(500).json({ message: error.message });
         }
-        // Aquí deberías manejar el resultado exitoso del login
-        res.status(200).json(result);
+        if (result.length === 0) {
+            return res.status(401).json({ message: 'Credenciales inválidas' });
+        }
+        // Asumiendo que el resultado contiene la información del usuario
+        const usuario = result[0];
+        // Aquí deberías generar un token JWT en lugar de usar el ID directamente
+        const token = generarToken(usuario);
+        res.status(200).json({ 
+            message: 'Inicio de sesión exitoso',
+            token: token,
+            usuario: {
+                id: usuario.id,
+                email: usuario.email,
+                // Otros datos del usuario que quieras enviar
+            }
+        });
     });
+};
+
+// Función para generar un token JWT
+const generarToken = (usuario) => {
+    // Implementa la generación del token JWT aquí
+    // Por ejemplo, usando la librería 'jsonwebtoken'
+    // return jwt.sign({ id: usuario.id, email: usuario.email }, 'tu_secreto', { expiresIn: '1h' });
+    return jwt.sign({ id: usuario.id, email: usuario.email }, 'tu_secreto', { expiresIn: '1h' });
 };
 
 const registrarUsuario = async (req, res) => {
@@ -46,13 +71,29 @@ const registrarUsuario = async (req, res) => {
 const registrarIglesia = (req, res) => {
     upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
-            return res.status(500).json({ message: 'Error al subir el archivo' });
+            return res.status(500).json({ message: 'Error al subir el archivo: ' + err.message });
         } else if (err) {
-            return res.status(500).json({ message: 'Error desconocido al subir el archivo' });
+            return res.status(500).json({ message: 'Error desconocido al subir el archivo: ' + err.message });
         }
 
         const { nombre, pastor, direccion, latitud, longitud, facebook, instagram, sitioWeb, horarios } = req.body;
-        const fotoPerfil = req.file ? req.file.path : null;
+        const fotoPerfil = req.file ? req.file.filename : null; // Guardamos solo el nombre del archivo
+
+        // Convertir horarios a formato array de objetos
+        let horariosFormateados;
+        try {
+            const horariosObj = JSON.parse(horarios);
+            horariosFormateados = Object.entries(horariosObj).reduce((acc, [dia, horas]) => {
+                horas.forEach(hora => {
+                    acc.push({ dia, hora });
+                });
+                return acc;
+            }, []);
+        } catch (error) {
+            return res.status(400).json({ message: 'Error al procesar los horarios: ' + error.message });
+        }
+
+        console.log('Horarios formateados:', horariosFormateados);
 
         const nuevaIglesia = {
             nombre,
@@ -64,11 +105,12 @@ const registrarIglesia = (req, res) => {
             facebook,
             instagram,
             sitioWeb,
-            horarios: JSON.parse(horarios)
+            horarios: JSON.stringify(horariosFormateados)
         };
 
         db.insertarIglesia(nuevaIglesia, (error, result) => {
             if (error) {
+                console.error('Error al insertar iglesia:', error);
                 return res.status(500).json({ message: error.message });
             }
             res.status(201).json(result);
@@ -76,8 +118,53 @@ const registrarIglesia = (req, res) => {
     });
 };
 
+const buscarIglesias = async (req, res) => {
+    const { nombre } = req.query;
+    db.buscarIglesiaPorNombre(nombre, async (error, result) => {
+        if (error) {
+            return res.status(500).json({ mensaje: 'Error al buscar iglesias', detalles: error.message });
+        }
+        
+        try {
+            const iglesiasConImagenes = result[0].map(iglesia => {
+                const redesSociales = {};
+                const horariosServicios = {};
+
+                if (iglesia.redes_sociales) {
+                    iglesia.redes_sociales.split(';').forEach(red => {
+                        const [plataforma, url] = red.split(':');
+                        redesSociales[plataforma.trim()] = url.trim();
+                    });
+                }
+
+                if (iglesia.horarios_servicios) {
+                    iglesia.horarios_servicios.split(';').forEach(horario => {
+                        const [dia, hora] = horario.split(':');
+                        if (!horariosServicios[dia.trim()]) {
+                            horariosServicios[dia.trim()] = [];
+                        }
+                        horariosServicios[dia.trim()].push(hora.trim());
+                    });
+                }
+
+                return {
+                    ...iglesia,
+                    foto_perfil: iglesia.foto_perfil ? `/imagenes/iglesias/${iglesia.foto_perfil}` : null,
+                    redes_sociales: redesSociales,
+                    horarios_servicios: horariosServicios
+                };
+            });
+            
+            res.status(200).json(iglesiasConImagenes);
+        } catch (err) {
+            res.status(500).json({ mensaje: 'Error al procesar las iglesias', detalles: err.message });
+        }
+    });
+};
+
 module.exports = {
     login,
     registrarUsuario,
-    registrarIglesia
+    registrarIglesia,
+    buscarIglesias
 };

@@ -1,101 +1,86 @@
 const mysql = require('mysql');
 const config = require('../config');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 
-// Crear la conexión a la base de datos
-const db = mysql.createConnection({
-    host: config.db.host,
-    user: config.db.user,
-    password: config.db.password,
-    database: config.db.database
-});
+let db;
+let isConnecting = false;
 
-// Conectar a la base de datos
-db.connect((err) => {
-    if (err) {
-        console.error('Error al conectar a la base de datos:', err);
-        throw err;
+function createConnection() {
+    return mysql.createConnection({
+        host: config.db.host,
+        user: config.db.user,
+        password: config.db.password,
+        database: config.db.database,
+        connectTimeout: 10000, // 10 segundos
+        acquireTimeout: 10000 // 10 segundos
+    });
+}
+
+function handleDisconnect() {
+    if (isConnecting) return;
+    isConnecting = true;
+
+    if (db) db.destroy();
+    db = createConnection();
+
+    db.connect((err) => {
+        isConnecting = false;
+        if (err) {
+            console.error('Error al conectar a la base de datos:', err);
+            setTimeout(handleDisconnect, 2000);
+        } else {
+            console.log('Conectado a la base de datos MySQL');
+        }
+    });
+
+    db.on('error', (err) => {
+        console.error('Error de base de datos:', err);
+        if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'ECONNRESET') {
+            handleDisconnect();
+        } else {
+            throw err;
+        }
+    });
+}
+
+// Función para ejecutar consultas con reintentos
+function queryWithRetry(sql, params, callback, retries = 3) {
+    if (!db || db.state === 'disconnected') {
+        handleDisconnect();
     }
-    console.log('Conectado a la base de datos MySQL');
-});
+    db.query(sql, params, (error, results) => {
+        if (error) {
+            console.error('Error en la consulta:', error);
+            if (retries > 0 && (error.code === 'PROTOCOL_CONNECTION_LOST' || error.code === 'ECONNRESET')) {
+                console.log(`Reintentando consulta, intentos restantes: ${retries - 1}`);
+                setTimeout(() => queryWithRetry(sql, params, callback, retries - 1), 1000);
+            } else {
+                callback(error, null);
+            }
+        } else {
+            callback(null, results);
+        }
+    });
+}
 
 // Función para registrar usuarios
 const registrarusuario = (usuario, callback) => {
-    const rolPredeterminado = 4; // Establecemos el rol predeterminado a 4
-    const query = 'CALL InsertUsuario(?, ?, ?)';
+    const rolPredeterminado = 4;
+    const sql = 'CALL InsertUsuario(?, ?, ?)';
     
-    db.query(query, [usuario.email, usuario.password, rolPredeterminado], (error, results) => {
-        if (error) {
-            // Verificar si el error es debido a un correo duplicado
-            if (error.code === 'ER_DUP_ENTRY') {
-                return callback({ message: 'Este correo ya ha sido registrado' }, null);
-            }
-            return callback(error, null);
-        }
-
-        // Manejar el resultado para obtener el ID del usuario insertado
-        if (results && results[0] && results[0][0]) {
-            const nuevoUsuario = results[0][0];
-            return callback(null, {
-                message: 'Usuario registrado exitosamente',
-                usuario: {
-                    id_usuario: nuevoUsuario.id_usuario,
-                    email: nuevoUsuario.email
-                }
-            });
-        } else {
-            return callback(new Error('No se pudo registrar el usuario'), null);
-        }
-    });
+    queryWithRetry(sql, [usuario.email, usuario.password, rolPredeterminado], callback);
 };
 
 // Método de inicio de sesión
 const login = (email, password, callback) => {
-    const query = 'SELECT * FROM usuarios WHERE email = ?';
-
-    db.query(query, [email], (error, results) => {
-        if (error) {
-            return callback(error, null);
-        }
-        
-        if (results.length === 0) { 
-            return callback({ message: 'Usuario no encontrado' }, null);
-        }
-       
-        const user = results[0];
-
-        // Comparar la contraseña con la que tenemos en la base de datos
-        bcrypt.compare(password, user.password, (error, match) => {
-            if (error) {
-                return callback(error, null);
-            }
-            if (!match) {
-                return callback({ message: 'Usuario o contraseña incorrectos' }, null);
-            }
-
-            // Generar un token JWT
-            const token = jwt.sign({ id_usuario: user.id_usuario, email: user.email }, config.jwtSecret, { expiresIn: '1h' });
-
-            // Devolver el token y los datos del usuario
-            return callback(null, {
-                message: 'Inicio de sesión exitoso',
-                token: token,
-                usuario: {
-                    id_usuario: user.id_usuario,
-                    email: user.email,
-                    id_rol: user.id_rol 
-                }
-            });
-        });
-    });
+    const sql = 'SELECT * FROM usuarios WHERE email = ?';
+    queryWithRetry(sql, [email], callback);
 };
 
 // Función para insertar una nueva iglesia
 const insertarIglesia = (iglesia, callback) => {
-    const query = 'CALL InsertIglesiaCompleta(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const sql = 'CALL InsertIglesiaCompleta(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
     
-    db.query(query, [
+    queryWithRetry(sql, [
         iglesia.nombre,
         iglesia.pastor,
         iglesia.direccion,
@@ -105,22 +90,30 @@ const insertarIglesia = (iglesia, callback) => {
         iglesia.facebook,
         iglesia.instagram,
         iglesia.sitioWeb,
-        JSON.stringify(iglesia.horarios)
+        iglesia.horarios // Ya debe ser una cadena JSON
     ], (error, results) => {
         if (error) {
-            return callback(error, null);
+            console.error('Error detallado al insertar iglesia:', error);
+            callback(error, null);
+        } else {
+            callback(null, results);
         }
-        
-        // El procedimiento no devuelve la iglesia insertada, así que modificamos la respuesta
-        return callback(null, {
-            message: 'Iglesia registrada exitosamente',
-            iglesiaId: results.insertId // Esto podría no estar disponible directamente
-        });
     });
 };
 
+// Función para buscar iglesias por nombre
+const buscarIglesiaPorNombre = (nombre, callback) => {
+    const sql = 'CALL BuscarIglesiaPorNombre(?)';
+    queryWithRetry(sql, [nombre], callback);
+};
+
+// Iniciar la conexión
+handleDisconnect();
+
 module.exports = {
+    queryWithRetry,
     registrarusuario,
     login,
-    insertarIglesia
+    insertarIglesia,
+    buscarIglesiaPorNombre
 };
