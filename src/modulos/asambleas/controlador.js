@@ -152,7 +152,7 @@ const buscarIglesias = async (req, res) => {
 
                 return {
                     ...iglesia,
-                    fotoPerfil: iglesia.fotoPerfil ? `/api.asambleasdedios.gt/imagenes/iglesias/${iglesia.fotoPerfil}` : null,
+                    fotoPerfil: iglesia.fotoPerfil ? `/imagenes/iglesias/${iglesia.fotoPerfil}` : null,
                     redes_sociales: redesSociales,
                     horarios_servicios: horariosServicios
                 };
