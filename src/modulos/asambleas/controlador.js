@@ -256,8 +256,20 @@ const buscarPastores = async (req, res) => {
             return res.status(500).json({ mensaje: 'Error al buscar pastores', detalles: error.message });
         }
         
-        const pastores = result[0];
-        res.status(200).json(pastores);
+        try {
+            const pastoresConImagenes = result[0].map(pastor => {
+                // Eliminamos el campo foto_perfil y usamos solo fotoPerfil
+                const { foto_perfil, ...pastorSinFotoDuplicada } = pastor;
+                return {
+                    ...pastorSinFotoDuplicada,
+                    fotoPerfil: foto_perfil ? `/imagenes/pastores/${foto_perfil}` : null
+                };
+            });
+            
+            res.status(200).json(pastoresConImagenes);
+        } catch (err) {
+            res.status(500).json({ mensaje: 'Error al procesar los pastores', detalles: err.message });
+        }
     });
 };
 
