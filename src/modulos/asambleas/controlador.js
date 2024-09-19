@@ -2,7 +2,7 @@ const db = require('../../DB/mysql');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
-const jwt = require('jsonwebtoken'); // Importación de la librería jwt para generar tokens
+const jwt = require('jsonwebtoken');
 const fs = require('fs').promises;
 
 // Configuración de multer para la carga de archivos
@@ -174,6 +174,19 @@ const buscarIglesias = async (req, res) => {
     });
 };
 
+// Configuración de multer para la carga de archivos de pastores
+const storagePastor = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadPath = path.join(__dirname, '..', '..', '..', 'imagenes', 'pastores');
+        cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname))
+    }
+});
+
+const uploadPastor = multer({ storage: storagePastor }).single('fotoPerfil');
+
 const insertarPastor = (req, res) => {
     console.log('Recibida solicitud para insertar pastor');
     uploadPastor(req, res, function (err) {
@@ -231,23 +244,10 @@ const insertarPastor = (req, res) => {
     });
 };
 
-// Configuración de multer para la carga de archivos de pastores
-const storagePastor = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const uploadPath = path.join(__dirname, '..', '..', '..', 'imagenes', 'pastores');
-        cb(null, uploadPath);
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname))
-    }
-});
-
-const uploadPastor = multer({ storage: storagePastor }).single('fotoPerfil');
-
 module.exports = {
     login,
     registrarUsuario,
     registrarIglesia,
     buscarIglesias,
-    insertarPastor // Añadir esta nueva función al módulo de exportación
+    insertarPastor
 };
