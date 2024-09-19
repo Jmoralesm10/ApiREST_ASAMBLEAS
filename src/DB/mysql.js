@@ -115,9 +115,40 @@ const buscarIglesiaPorNombre = (nombre, callback) => {
 };
 
 // Función para insertar un pastor
-const insertarPastor = (primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, iglesia_id, cargo_id, fotoPerfil, callback) => {
-    const sql = 'CALL InsertarYActualizarPastor(?, ?, ?, ?, ?, ?, ?)';
-    queryWithRetry(sql, [primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, iglesia_id, cargo_id, fotoPerfil], (error, results) => {
+const insertarPastor = (
+    primer_nombre, 
+    segundo_nombre, 
+    primer_apellido, 
+    segundo_apellido, 
+    iglesia_id, 
+    cargo_id, 
+    fotoPerfil,
+    dpi,
+    fecha_nacimiento,
+    carnet_pastor,
+    email,
+    telefono,
+    fecha_inicio_cargo,
+    estudio_biblico,
+    callback
+) => {
+    const sql = 'CALL InsertarYActualizarPastor(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    queryWithRetry(sql, [
+        primer_nombre, 
+        segundo_nombre, 
+        primer_apellido, 
+        segundo_apellido, 
+        iglesia_id, 
+        cargo_id, 
+        fotoPerfil,
+        dpi,
+        fecha_nacimiento,
+        carnet_pastor,
+        email,
+        telefono,
+        fecha_inicio_cargo,
+        estudio_biblico
+    ], (error, results) => {
         if (error) {
             console.error('Error al insertar pastor:', error);
             callback(error, null);
