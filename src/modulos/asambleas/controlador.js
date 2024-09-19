@@ -174,9 +174,53 @@ const buscarIglesias = async (req, res) => {
     });
 };
 
+const insertarPastor = (req, res) => {
+    uploadPastor(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            return res.status(500).json({ message: 'Error al subir el archivo: ' + err.message });
+        } else if (err) {
+            return res.status(500).json({ message: 'Error desconocido al subir el archivo: ' + err.message });
+        }
+
+        const { primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, iglesia_id, cargo_id } = req.body;
+        const fotoPerfil = req.file ? req.file.filename : null;
+
+        db.insertarPastor(
+            primer_nombre,
+            segundo_nombre,
+            primer_apellido,
+            segundo_apellido,
+            iglesia_id,
+            cargo_id,
+            fotoPerfil,
+            (error, result) => {
+                if (error) {
+                    console.error('Error al insertar pastor:', error);
+                    return res.status(500).json({ mensaje: 'Error al insertar pastor', detalles: error.message });
+                }
+                res.status(201).json({ mensaje: 'Pastor insertado con éxito', resultado: result });
+            }
+        );
+    });
+};
+
+// Configuración de multer para la carga de archivos de pastores
+const storagePastor = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadPath = path.join(__dirname, '..', '..', '..', 'imagenes', 'pastores');
+        cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname))
+    }
+});
+
+const uploadPastor = multer({ storage: storagePastor }).single('fotoPerfil');
+
 module.exports = {
     login,
     registrarUsuario,
     registrarIglesia,
-    buscarIglesias
+    buscarIglesias,
+    insertarPastor // Añadir esta nueva función al módulo de exportación
 };

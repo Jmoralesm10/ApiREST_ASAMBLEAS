@@ -114,6 +114,19 @@ const buscarIglesiaPorNombre = (nombre, callback) => {
     });
 };
 
+// Función para insertar un pastor
+const insertarPastor = (primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, iglesia_id, cargo_id, fotoPerfil, callback) => {
+    const sql = 'CALL InsertarYActualizarPastor(?, ?, ?, ?, ?, ?, ?)';
+    queryWithRetry(sql, [primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, iglesia_id, cargo_id, fotoPerfil], (error, results) => {
+        if (error) {
+            console.error('Error al insertar pastor:', error);
+            callback(error, null);
+        } else {
+            callback(null, results);
+        }
+    });
+};
+
 // Iniciar la conexión
 handleDisconnect();
 
@@ -122,5 +135,6 @@ module.exports = {
     registrarusuario,
     login,
     insertarIglesia,
-    buscarIglesiaPorNombre
+    buscarIglesiaPorNombre,
+    insertarPastor // Añadir esta nueva función al módulo de exportación
 };
