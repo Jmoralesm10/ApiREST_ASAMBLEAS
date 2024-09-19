@@ -175,12 +175,18 @@ const buscarIglesias = async (req, res) => {
 };
 
 const insertarPastor = (req, res) => {
+    console.log('Recibida solicitud para insertar pastor');
     uploadPastor(req, res, function (err) {
         if (err instanceof multer.MulterError) {
+            console.error('Error de Multer:', err);
             return res.status(500).json({ message: 'Error al subir el archivo: ' + err.message });
         } else if (err) {
+            console.error('Error desconocido:', err);
             return res.status(500).json({ message: 'Error desconocido al subir el archivo: ' + err.message });
         }
+
+        console.log('Cuerpo de la solicitud:', req.body);
+        console.log('Archivo recibido:', req.file);
 
         const { 
             primer_nombre, 
