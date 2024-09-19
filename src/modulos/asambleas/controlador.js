@@ -182,7 +182,21 @@ const insertarPastor = (req, res) => {
             return res.status(500).json({ message: 'Error desconocido al subir el archivo: ' + err.message });
         }
 
-        const { primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, iglesia_id, cargo_id } = req.body;
+        const { 
+            primer_nombre, 
+            segundo_nombre, 
+            primer_apellido, 
+            segundo_apellido, 
+            iglesia_id, 
+            cargo_id,
+            dpi,
+            fecha_nacimiento,
+            carnet_pastor,
+            email,
+            telefono,
+            fecha_inicio_cargo,
+            estudio_biblico
+        } = req.body;
         const fotoPerfil = req.file ? req.file.filename : null;
 
         db.insertarPastor(
@@ -193,6 +207,13 @@ const insertarPastor = (req, res) => {
             iglesia_id,
             cargo_id,
             fotoPerfil,
+            dpi,
+            fecha_nacimiento,
+            carnet_pastor,
+            email,
+            telefono,
+            fecha_inicio_cargo,
+            estudio_biblico,
             (error, result) => {
                 if (error) {
                     console.error('Error al insertar pastor:', error);
