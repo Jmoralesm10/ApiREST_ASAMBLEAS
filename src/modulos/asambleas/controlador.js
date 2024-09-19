@@ -18,18 +18,27 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage }).single('imagen');
 
-const login = (req, res) => {
+const login = async (req, res) => {
     const { email, password } = req.body;
-    db.login(email, password, (error, result) => {
-        if (error) {
-            return res.status(500).json({ message: error.message });
-        }
+    try {
+        const result = await new Promise((resolve, reject) => {
+            db.login(email, (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            });
+        });
+
         if (result.length === 0) {
             return res.status(401).json({ message: 'Credenciales inválidas' });
         }
-        // Asumiendo que el resultado contiene la información del usuario
+
         const usuario = result[0];
-        // Aquí deberías generar un token JWT en lugar de usar el ID directamente
+        const passwordValida = await bcrypt.compare(password, usuario.password);
+
+        if (!passwordValida) {
+            return res.status(401).json({ message: 'Credenciales inválidas' });
+        }
+
         const token = generarToken(usuario);
         res.status(200).json({ 
             message: 'Inicio de sesión exitoso',
@@ -40,14 +49,14 @@ const login = (req, res) => {
                 // Otros datos del usuario que quieras enviar
             }
         });
-    });
+    } catch (error) {
+        console.error('Error en el login:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
 };
 
 // Función para generar un token JWT
 const generarToken = (usuario) => {
-    // Implementa la generación del token JWT aquí
-    // Por ejemplo, usando la librería 'jsonwebtoken'
-    // return jwt.sign({ id: usuario.id, email: usuario.email }, 'tu_secreto', { expiresIn: '1h' });
     return jwt.sign({ id: usuario.id, email: usuario.email }, 'tu_secreto', { expiresIn: '1h' });
 };
 
