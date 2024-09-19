@@ -244,10 +244,28 @@ const insertarPastor = (req, res) => {
     });
 };
 
+const buscarPastores = async (req, res) => {
+    const { nombre, dpi } = req.query;
+    
+    if (!nombre && !dpi) {
+        return res.status(400).json({ mensaje: 'Debe proporcionar al menos un criterio de búsqueda (nombre o dpi).' });
+    }
+
+    db.buscarPastores(nombre, dpi, (error, result) => {
+        if (error) {
+            return res.status(500).json({ mensaje: 'Error al buscar pastores', detalles: error.message });
+        }
+        
+        const pastores = result[0];
+        res.status(200).json(pastores);
+    });
+};
+
 module.exports = {
     login,
     registrarUsuario,
     registrarIglesia,
     buscarIglesias,
-    insertarPastor
+    insertarPastor,
+    buscarPastores
 };

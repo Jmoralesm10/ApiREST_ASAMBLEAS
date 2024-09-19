@@ -158,6 +158,19 @@ const insertarPastor = (
     });
 };
 
+// Función para buscar pastores
+const buscarPastores = (nombre, dpi, callback) => {
+    const sql = 'CALL BuscarPastores(?, ?)';
+    queryWithRetry(sql, [nombre, dpi], (error, results) => {
+        if (error) {
+            console.error('Error al buscar pastores:', error);
+            callback(error, null);
+        } else {
+            callback(null, results);
+        }
+    });
+};
+
 // Iniciar la conexión
 handleDisconnect();
 
@@ -167,5 +180,6 @@ module.exports = {
     login,
     insertarIglesia,
     buscarIglesiaPorNombre,
-    insertarPastor // Añadir esta nueva función al módulo de exportación
+    insertarPastor,
+    buscarPastores
 };
