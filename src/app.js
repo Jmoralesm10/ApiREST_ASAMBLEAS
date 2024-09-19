@@ -22,6 +22,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api.asambleasdedios.gt/api/asambleas', asambleasRoutes);
 
 // SERVIR IMAGENES ESTÁTICAMENTE
-app.use('/api.asambleasdedios.gt/imagenes', express.static('/home/asamblea/API_REST/imagenes'));
+app.use('/imagenes', express.static('/home/asamblea/API_REST/imagenes'));
 
 module.exports = app;
