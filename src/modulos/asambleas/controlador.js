@@ -8,7 +8,12 @@ const fs = require('fs').promises;
 // Configuración de multer para la carga de archivos
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadPath = path.join(__dirname, '..', '..', '..', 'imagenes', 'iglesias');
+        let uploadPath;
+        if (file.fieldname === 'imagen') {
+            uploadPath = path.join(__dirname, '..', '..', '..', 'imagenes', 'anuncios');
+        } else {
+            uploadPath = path.join(__dirname, '..', '..', '..', 'archivos');
+        }
         cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
@@ -16,7 +21,10 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage: storage }).single('imagen');
+const upload = multer({ storage: storage }).fields([
+    { name: 'imagen', maxCount: 1 },
+    { name: 'archivo', maxCount: 1 }
+]);
 
 const login = async (req, res) => {
     const { email, password } = req.body;
@@ -188,18 +196,12 @@ const storagePastor = multer.diskStorage({
 const uploadPastor = multer({ storage: storagePastor }).single('fotoPerfil');
 
 const insertarPastor = (req, res) => {
-    console.log('Recibida solicitud para insertar pastor');
     uploadPastor(req, res, function (err) {
         if (err instanceof multer.MulterError) {
-            console.error('Error de Multer:', err);
             return res.status(500).json({ message: 'Error al subir el archivo: ' + err.message });
         } else if (err) {
-            console.error('Error desconocido:', err);
             return res.status(500).json({ message: 'Error desconocido al subir el archivo: ' + err.message });
         }
-
-        console.log('Cuerpo de la solicitud:', req.body);
-        console.log('Archivo recibido:', req.file);
 
         const { 
             primer_nombre, 
@@ -235,7 +237,6 @@ const insertarPastor = (req, res) => {
             estudio_biblico,
             (error, result) => {
                 if (error) {
-                    console.error('Error al insertar pastor:', error);
                     return res.status(500).json({ mensaje: 'Error al insertar pastor', detalles: error.message });
                 }
                 res.status(201).json({ mensaje: 'Pastor insertado con éxito', resultado: result });
@@ -273,11 +274,70 @@ const buscarPastores = async (req, res) => {
     });
 };
 
+// Configuración de multer para la carga de archivos de anuncios
+const storageAnuncio = multer.diskStorage({
+    destination: function (req, file, cb) {
+        let uploadPath;
+        if (file.mimetype.startsWith('image/')) {
+            uploadPath = path.join(__dirname, '..', '..', '..', 'imagenes', 'anuncios');
+        } else {
+            uploadPath = path.join(__dirname, '..', '..', '..', 'archivos');
+        }
+        cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname))
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+    if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Tipo de archivo no permitido: ' + file.mimetype), false);
+    }
+};
+
+const uploadAnuncio = multer({ 
+    storage: storageAnuncio,
+    fileFilter: fileFilter
+}).fields([
+    { name: 'imagen', maxCount: 1 },
+    { name: 'archivo', maxCount: 1 }
+]);
+
+const crearAnuncio = (req, res) => {
+
+    uploadAnuncio(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            return res.status(500).json({ message: 'Error al subir el archivo: ' + err.message });
+        } else if (err) {
+            return res.status(500).json({ message: 'Error desconocido al subir el archivo: ' + err.message });
+        }
+
+        const { email, texto } = req.body;
+        const imagen = req.files['imagen'] ? req.files['imagen'][0].filename : null;
+        const archivo = req.files['archivo'] ? req.files['archivo'][0].filename : null;
+
+        db.insertarAnuncio(email, texto, imagen, archivo, (error, result) => {
+            if (error) {
+                if (error.code === 'CUSTOM_ERROR') {
+                    return res.status(400).json({ mensaje: error.message });
+                }
+                return res.status(500).json({ mensaje: 'Error al insertar anuncio', detalles: error.message });
+            }
+            res.status(201).json({ mensaje: 'Anuncio creado con éxito', resultado: result });
+        });
+    });
+};
+
 module.exports = {
     login,
     registrarUsuario,
     registrarIglesia,
     buscarIglesias,
     insertarPastor,
-    buscarPastores
+    buscarPastores,
+    crearAnuncio
 };

@@ -171,6 +171,24 @@ const buscarPastores = (nombre, dpi, callback) => {
     });
 };
 
+// Función para insertar un anuncio
+const insertarAnuncio = (email, texto, imagen, archivo, callback) => {
+    const sql = 'CALL InsertarAnuncio(?, ?, ?, ?)';
+    queryWithRetry(sql, [email, texto, imagen, archivo], (error, results) => {
+        if (error) {
+            console.error('Error al insertar anuncio:', error);
+            if (error.sqlState === '45000') {
+                // Este es un error personalizado del procedimiento almacenado
+                callback({ code: 'CUSTOM_ERROR', message: error.message }, null);
+            } else {
+                callback(error, null);
+            }
+        } else {
+            callback(null, results);
+        }
+    });
+};
+
 // Iniciar la conexión
 handleDisconnect();
 
@@ -181,5 +199,6 @@ module.exports = {
     insertarIglesia,
     buscarIglesiaPorNombre,
     insertarPastor,
-    buscarPastores
+    buscarPastores,
+    insertarAnuncio
 };

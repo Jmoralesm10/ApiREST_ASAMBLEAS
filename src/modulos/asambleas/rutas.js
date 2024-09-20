@@ -9,5 +9,6 @@ router.post('/registro-iglesia', controlador.registrarIglesia);
 router.get('/buscar-iglesias', controlador.buscarIglesias);
 router.post('/insertar-pastor', controlador.insertarPastor);
 router.get('/buscar-pastores', controlador.buscarPastores);
+router.post('/crear-anuncio', controlador.crearAnuncio);
 
 module.exports = router;
