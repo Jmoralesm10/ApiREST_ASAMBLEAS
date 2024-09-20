@@ -189,6 +189,19 @@ const insertarAnuncio = (email, texto, imagen, archivo, callback) => {
     });
 };
 
+// Función para obtener anuncios
+const obtenerAnuncios = (email, callback) => {
+    const sql = 'CALL ObtenerAnuncios(?)';
+    queryWithRetry(sql, [email], (error, results) => {
+        if (error) {
+            console.error('Error al obtener anuncios:', error);
+            callback(error, null);
+        } else {
+            callback(null, results);
+        }
+    });
+};
+
 // Iniciar la conexión
 handleDisconnect();
 
@@ -200,5 +213,6 @@ module.exports = {
     buscarIglesiaPorNombre,
     insertarPastor,
     buscarPastores,
-    insertarAnuncio
+    insertarAnuncio,
+    obtenerAnuncios
 };

@@ -24,4 +24,7 @@ app.use('/api.asambleasdedios.gt/api/asambleas', asambleasRoutes);
 // SERVIR IMAGENES ESTÁTICAMENTE
 app.use('/imagenes', express.static('/home/asamblea/API_REST/imagenes'));
 
+// SERVIR ARCHIVOS ESTÁTICAMENTE
+app.use('/archivos', express.static('/home/asamblea/API_REST/archivos'));
+
 module.exports = app;

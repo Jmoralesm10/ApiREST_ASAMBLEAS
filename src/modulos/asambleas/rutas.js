@@ -7,8 +7,9 @@ router.post('/login', controlador.login);
 router.post('/registro', controlador.registrarUsuario);
 router.post('/registro-iglesia', controlador.registrarIglesia);
 router.get('/buscar-iglesias', controlador.buscarIglesias);
-router.post('/insertar-pastor', controlador.insertarPastor);
 router.get('/buscar-pastores', controlador.buscarPastores);
 router.post('/crear-anuncio', controlador.crearAnuncio);
+router.get('/obtener-anuncios', controlador.obtenerAnuncios);
+router.post('/insertar-pastor', controlador.insertarPastor);
 
 module.exports = router;

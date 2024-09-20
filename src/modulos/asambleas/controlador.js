@@ -332,6 +332,34 @@ const crearAnuncio = (req, res) => {
     });
 };
 
+const obtenerAnuncios = async (req, res) => {
+    const { email } = req.query;
+
+    if (!email) {
+        return res.status(400).json({ mensaje: 'El email es requerido' });
+    }
+
+    db.obtenerAnuncios(email, (error, result) => {
+        if (error) {
+            return res.status(500).json({ mensaje: 'Error al obtener anuncios', detalles: error.message });
+        }
+        
+        try {
+            const anunciosConArchivos = result[0].map(anuncio => ({
+                ...anuncio,
+                imagen: anuncio.imagen ? `/imagenes/anuncios/${anuncio.imagen}` : null,
+                pdf: anuncio.pdf ? `/archivos/${anuncio.pdf}` : null,
+                foto_perfil_pastor: anuncio.foto_perfil_pastor ? `/imagenes/pastores/${anuncio.foto_perfil_pastor}` : null,
+                foto_perfil_iglesia: anuncio.foto_perfil_iglesia ? `/imagenes/iglesias/${anuncio.foto_perfil_iglesia}` : null
+            }));
+            
+            res.status(200).json(anunciosConArchivos);
+        } catch (err) {
+            res.status(500).json({ mensaje: 'Error al procesar los anuncios', detalles: err.message });
+        }
+    });
+};
+
 module.exports = {
     login,
     registrarUsuario,
@@ -339,5 +367,6 @@ module.exports = {
     buscarIglesias,
     insertarPastor,
     buscarPastores,
-    crearAnuncio
+    crearAnuncio,
+    obtenerAnuncios
 };
