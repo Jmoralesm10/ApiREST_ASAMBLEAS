@@ -71,8 +71,8 @@ const registrarusuario = (usuario, callback) => {
 };
 
 // Método de inicio de sesión
-const login = (email, password, callback) => {
-    const sql = 'SELECT * FROM usuarios WHERE email = ?';
+const login = (email, callback) => {
+    const sql = 'CALL LoginUsuario(?)';
     queryWithRetry(sql, [email], callback);
 };
 

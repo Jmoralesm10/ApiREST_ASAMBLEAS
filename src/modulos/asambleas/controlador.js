@@ -30,17 +30,17 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     try {
         const result = await new Promise((resolve, reject) => {
-            db.login(email, password, (error, result) => {
+            db.login(email, (error, result) => {
                 if (error) reject(error);
                 else resolve(result);
             });
         });
 
-        if (result.length === 0) {
+        if (result[0].length === 0) {
             return res.status(401).json({ message: 'Credenciales inválidas' });
         }
 
-        const usuario = result[0];
+        const usuario = result[0][0];
         const passwordValida = await bcrypt.compare(password, usuario.password);
 
         if (!passwordValida) {
@@ -52,9 +52,9 @@ const login = async (req, res) => {
             message: 'Inicio de sesión exitoso',
             token: token,
             usuario: {
-                id: usuario.id,
+                id: usuario.id_usuario,
                 email: usuario.email,
-                // Otros datos del usuario que quieras enviar
+                idRol: usuario.id_rol
             }
         });
     } catch (error) {
