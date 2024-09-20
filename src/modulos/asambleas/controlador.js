@@ -30,7 +30,7 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     try {
         const result = await new Promise((resolve, reject) => {
-            db.login(email, (error, result) => {
+            db.login(email, password, (error, result) => {
                 if (error) reject(error);
                 else resolve(result);
             });
