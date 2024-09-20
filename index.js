@@ -4,16 +4,9 @@ const config = require('./src/config');
 // Usar el prefijo de ruta para todas las rutas
 app.use('/api.asambleasdedios.gt/api/asambleas', require('./src/modulos/asambleas/rutas'));
 
-app.post('/api.asambleasdedios.gt/api/asambleas', (req, res) => {
-    res.send('It works! API ASAMBLEAS DE DIOS');
-  });
-
   app.get('/api.asambleasdedios.gt/api/asambleas', (req, res) => {
     res.send('It works! API ASAMBLEAS DE DIOS');
-    res.send('Port: ' + config.app.port);
   });
-
-  
 
 app.listen(app.get('port'), '0.0.0.0', () => {
     console.log(`Servidor ejecutándose en el puerto ${config.app.port}`);
