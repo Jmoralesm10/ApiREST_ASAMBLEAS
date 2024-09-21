@@ -22,9 +22,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api.asambleasdedios.gt/api/asambleas', asambleasRoutes);
 
 // SERVIR IMAGENES ESTÁTICAMENTE
-app.use('/imagenes', express.static('/home/asamblea/API_REST/imagenes'));
+app.use('/api.asambleasdedios.gt/imagenes', express.static(path.join(__dirname, '..', 'imagenes')));
 
 // SERVIR ARCHIVOS ESTÁTICAMENTE
-app.use('/archivos', express.static('/home/asamblea/API_REST/archivos'));
+app.use('/api.asambleasdedios.gt/archivos', express.static(path.join(__dirname, '..', 'archivos')));
 
 module.exports = app;
