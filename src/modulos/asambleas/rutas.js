@@ -11,5 +11,7 @@ router.get('/buscar-pastores', controlador.buscarPastores);
 router.post('/crear-anuncio', controlador.crearAnuncio);
 router.get('/obtener-anuncios', controlador.obtenerAnuncios);
 router.post('/insertar-pastor', controlador.insertarPastor);
+router.post('/agregar-favorito', controlador.añadirPastorAFavoritos);
+router.post('/eliminar-favorito', controlador.eliminarPastorDeFavoritos);
 
 module.exports = router;

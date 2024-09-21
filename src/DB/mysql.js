@@ -202,6 +202,32 @@ const obtenerAnuncios = (email, callback) => {
     });
 };
 
+// Función para añadir un pastor a favoritos
+const añadirPastorAFavoritos = (userEmail, pastorEmail, callback) => {
+    const sql = 'CALL AñadirPastorAFavoritos(?, ?)';
+    queryWithRetry(sql, [userEmail, pastorEmail], (error, results) => {
+        if (error) {
+            console.error('Error al añadir pastor a favoritos:', error);
+            callback(error, null);
+        } else {
+            callback(null, results);
+        }
+    });
+};
+
+// Función para eliminar un pastor de favoritos
+const eliminarPastorDeFavoritos = (userEmail, pastorEmail, callback) => {
+    const sql = 'CALL EliminarPastorDeFavoritos(?, ?)';
+    queryWithRetry(sql, [userEmail, pastorEmail], (error, results) => {
+        if (error) {
+            console.error('Error al eliminar pastor de favoritos:', error);
+            callback(error, null);
+        } else {
+            callback(null, results);
+        }
+    });
+};
+
 // Iniciar la conexión
 handleDisconnect();
 
@@ -214,5 +240,7 @@ module.exports = {
     insertarPastor,
     buscarPastores,
     insertarAnuncio,
-    obtenerAnuncios
+    obtenerAnuncios,
+    añadirPastorAFavoritos,
+    eliminarPastorDeFavoritos
 };

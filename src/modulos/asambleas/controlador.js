@@ -360,6 +360,28 @@ const obtenerAnuncios = async (req, res) => {
     });
 };
 
+const añadirPastorAFavoritos = (req, res) => {
+    const { userEmail, pastorEmail } = req.body;
+
+    db.añadirPastorAFavoritos(userEmail, pastorEmail, (error, result) => {
+        if (error) {
+            return res.status(500).json({ mensaje: 'Error al añadir pastor a favoritos', detalles: error.message });
+        }
+        res.status(201).json({ mensaje: 'Pastor añadido a favoritos con éxito', resultado: result });
+    });
+};
+
+const eliminarPastorDeFavoritos = (req, res) => {
+    const { userEmail, pastorEmail } = req.body;
+
+    db.eliminarPastorDeFavoritos(userEmail, pastorEmail, (error, result) => {
+        if (error) {
+            return res.status(500).json({ mensaje: 'Error al eliminar pastor de favoritos', detalles: error.message });
+        }
+        res.status(200).json({ mensaje: 'Pastor eliminado de favoritos con éxito', resultado: result });
+    });
+};
+
 module.exports = {
     login,
     registrarUsuario,
@@ -368,5 +390,7 @@ module.exports = {
     insertarPastor,
     buscarPastores,
     crearAnuncio,
-    obtenerAnuncios
+    obtenerAnuncios,
+    añadirPastorAFavoritos,
+    eliminarPastorDeFavoritos
 };
