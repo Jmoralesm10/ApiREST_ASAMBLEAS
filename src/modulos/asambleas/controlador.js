@@ -10,7 +10,7 @@ const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         let uploadPath;
         if (file.fieldname === 'imagen') {
-            uploadPath = path.join(__dirname, '..', '..', '..', 'imagenes', 'anuncios');
+            uploadPath = path.join(__dirname, '..', '..', '..', 'imagenes', 'iglesias'); // Cambiado a 'iglesias'
         } else {
             uploadPath = path.join(__dirname, '..', '..', '..', 'archivos');
         }
@@ -94,7 +94,7 @@ const registrarIglesia = (req, res) => {
         }
 
         const { nombre, pastor, direccion, latitud, longitud, facebook, instagram, sitioWeb, horarios } = req.body;
-        const fotoPerfil = req.file ? req.file.filename : null; // Guardamos solo el nombre del archivo
+        const fotoPerfil = req.files['imagen'] ? req.files['imagen'][0].filename : null; // Cambiado a req.files['imagen']
 
         // Convertir horarios a formato array de objetos
         let horariosFormateados;
@@ -185,7 +185,7 @@ const buscarIglesias = async (req, res) => {
 // Configuración de multer para la carga de archivos de pastores
 const storagePastor = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadPath = path.join(__dirname, '..', '..', '..', 'imagenes', 'pastores');
+        const uploadPath = path.join(__dirname, '..', '..', '..', 'imagenes', 'pastores'); // Asegurarse de que esté correcto
         cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
@@ -339,25 +339,44 @@ const obtenerAnuncios = async (req, res) => {
         return res.status(400).json({ mensaje: 'El email es requerido' });
     }
 
-    db.obtenerAnuncios(email, (error, result) => {
-        if (error) {
-            return res.status(500).json({ mensaje: 'Error al obtener anuncios', detalles: error.message });
+    try {
+        // Obtener el ID del usuario a partir del email
+        const usuario = await new Promise((resolve, reject) => {
+            db.obtenerUsuarioPorEmail(email, (error, result) => {
+                if (error) reject(error);
+                else resolve(result[0]);
+            });
+        });
+
+        if (!usuario) {
+            return res.status(404).json({ mensaje: 'Usuario no encontrado' });
         }
-        
-        try {
-            const anunciosConArchivos = result[0].map(anuncio => ({
-                ...anuncio,
-                imagen: anuncio.imagen ? `/imagenes/anuncios/${anuncio.imagen}` : null,
-                pdf: anuncio.pdf ? `/archivos/${anuncio.pdf}` : null,
-                foto_perfil_pastor: anuncio.foto_perfil_pastor ? `/imagenes/pastores/${anuncio.foto_perfil_pastor}` : null,
-                foto_perfil_iglesia: anuncio.foto_perfil_iglesia ? `/imagenes/iglesias/${anuncio.foto_perfil_iglesia}` : null
-            }));
-            
-            res.status(200).json(anunciosConArchivos);
-        } catch (err) {
-            res.status(500).json({ mensaje: 'Error al procesar los anuncios', detalles: err.message });
-        }
-    });
+
+        const usuarioId = usuario.id_usuario;
+
+        // Llamar al procedimiento almacenado
+        db.query('CALL ObtenerAnuncios(?)', [usuarioId], (error, result) => {
+            if (error) {
+                return res.status(500).json({ mensaje: 'Error al obtener anuncios', detalles: error.message });
+            }
+
+            try {
+                const anunciosConArchivos = result[0].map(anuncio => ({
+                    ...anuncio,
+                    imagen: anuncio.imagen ? `/imagenes/anuncios/${anuncio.imagen}` : null,
+                    pdf: anuncio.pdf ? `/archivos/${anuncio.pdf}` : null,
+                    foto_perfil_pastor: anuncio.foto_perfil_pastor ? `/imagenes/pastores/${anuncio.foto_perfil_pastor}` : null,
+                    foto_perfil_iglesia: anuncio.foto_perfil_iglesia ? `/imagenes/iglesias/${anuncio.foto_perfil_iglesia}` : null
+                }));
+
+                res.status(200).json(anunciosConArchivos);
+            } catch (err) {
+                res.status(500).json({ mensaje: 'Error al procesar los anuncios', detalles: err.message });
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener usuario', detalles: error.message });
+    }
 };
 
 const añadirPastorAFavoritos = (req, res) => {

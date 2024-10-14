@@ -190,9 +190,9 @@ const insertarAnuncio = (email, texto, imagen, archivo, callback) => {
 };
 
 // Función para obtener anuncios
-const obtenerAnuncios = (email, callback) => {
+const obtenerAnuncios = (usuarioId, callback) => {
     const sql = 'CALL ObtenerAnuncios(?)';
-    queryWithRetry(sql, [email], (error, results) => {
+    queryWithRetry(sql, [usuarioId], (error, results) => {
         if (error) {
             console.error('Error al obtener anuncios:', error);
             callback(error, null);
@@ -228,10 +228,24 @@ const eliminarPastorDeFavoritos = (userEmail, pastorEmail, callback) => {
     });
 };
 
+// Función para obtener usuario por email
+const obtenerUsuarioPorEmail = (email, callback) => {
+    const sql = 'SELECT * FROM usuarios WHERE email = ?';
+    queryWithRetry(sql, [email], (error, results) => {
+        if (error) {
+            console.error('Error al obtener usuario por email:', error);
+            callback(error, null);
+        } else {
+            callback(null, results);
+        }
+    });
+};
+
 // Iniciar la conexión
 handleDisconnect();
 
 module.exports = {
+    query: (sql, params, callback) => queryWithRetry(sql, params, callback),
     queryWithRetry,
     registrarusuario,
     login,
@@ -242,5 +256,6 @@ module.exports = {
     insertarAnuncio,
     obtenerAnuncios,
     añadirPastorAFavoritos,
-    eliminarPastorDeFavoritos
+    eliminarPastorDeFavoritos,
+    obtenerUsuarioPorEmail
 };
